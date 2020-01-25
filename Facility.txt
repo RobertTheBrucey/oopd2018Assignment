@@ -1,0 +1,239 @@
+/*****************************************************************************
+* File:      Facility.txt                                                    *
+* Author:    Sean Ashton * Student ID: 14866636                              *
+* Unit:      COMP1001 Object Oriented Program Design                         *
+* Purpose:   Stores several Storage Objects and provides interface for       *
+*            interaction                                                     *
+* Reference: None.                                                           *
+* Comments:  This comment block is the maximum width of 78 characters.       *
+* Requires:  Nothing. List dependencies here                                 *
+* Created:   20/05/2018 * Last Modified: 20/05/2018                          *
+*****************************************************************************/
+CLASS: Facility
+
+PUBLIC CLASS CONSTANTS:
+   STORES (ARRAY OF String) = ["Freezer","Fridge","Pantry"]
+
+CLASS FIELDS:
+   storages (ARRAY OF Storage)
+
+CONSTRUCTORS://Currently must construct Freezer/Fridge/Pantry [0,1,2]
+   DEFAULT:
+   IMPORT: none
+   EXPORT: Object Reference
+   ASSERTION: ... is a valid default state
+   ALGORITHM:
+      storages = ARRAY OF Storage SIZE OF 3
+      CONSTRUCT storages[0] USING STORES[0],50,-27.0,-5.0
+      CONSTRUCT storages[1] USING STORES[1],50,-2.0,6.0
+      CONSTRUCT storages[2] USING STORES[2],50,8.0,25.0
+
+   ALTERNATE:
+   IMPORT: freeCap (integer), fridCap (integer), pantCap (integer)
+   EXPORT: Object Reference
+   ASSERTION: Creates object if import are valid, otherwise FAILS
+   ALGORITHM:
+      storages = ARRAY OF Storage SIZE OF 3
+      CONSTRUCT storages[0] USING STORES[0],freeCap,-27.0,-5.0
+      CONSTRUCT storages[1] USING STORES[1],fridCap,-2.0,6.0
+      CONSTRUCT storages[2] USING STORES[2],pantCap,8.0,25.0
+
+   FILE INPUT:
+   IMPORT: fileName (String)
+   EXPORT: Object Reference
+   ASSERTION: Attempts to construct facility from fileName file or FAILS
+   ALGORITHM:
+      reader = SUtil.getReader<--fileName
+      freeCap = fridCap = pantCap = -1
+      FOR i = 0 TO 2 (inclusive) CHANGEBY 1
+         INPUT line FROM reader
+         tokens = TOKENISE line BY ", "
+         cap = CONVERT TO integer tokens[1]
+         IF tokens[0] SAME AS "Freezer" THEN
+            freeCap = cap
+         ELSE IF tokens[0] SAME AS "Fridge" THEN
+            fridCap = cap
+         ELSE IF tokens[0] SAME AS "Pantry" THEN
+            pantCap = cap
+      END FOR
+      IF freeCap EQUALS -1 OR fridCap EQUALS -1 OR pantCap EQUALS -1 THEN
+         FAIL WITH IllegalArgumentException e
+         ELSE
+         storages = ARRAY OF Storage SIZE OF 3
+         CONSTRUCT storages[0] USING STORES[0],freeCap,-27.0,-5.0
+         CONSTRUCT storages[1] USING STORES[1],fridCap,-2.0,6.0
+         CONSTRUCT storages[2] USING STORES[2],pantCap,8.0,25.0
+         importFood<--reader
+
+   COPY:
+   IMPORT: toCopy (Facility)
+   EXPORT: Object Reference
+   ASSERTION: Constructs an object with identical state to the import
+   ALGORITHM:
+      storages = toCopy.getStorages<--none
+
+ACCESSORS:
+   //Purpose: Return storages for use in copying THIS
+   //Date Modified: 20/05/2018
+   SUB MODULE getStorages
+   IMPORT: none
+   EXPORT: COPY OF storages
+
+   //Purpose: Display Storage contents
+   //Date Modified: 20/05/2018
+   SUB MODULE displayContents
+   IMPORT: store (integer)
+   EXPORT: none
+   ASSERTION:
+   ALGORITHM:
+      OUTPUT storages[store]
+      OUTPUT storages[store].displayFood<--none
+
+   SUB MODULE equals
+   IMPORT: inFacility (Facility)
+   EXPORT: bool (boolean)
+   ASSERTION: Checks for if inName has identical state to THIS
+   ALGORITHM:
+      IF storages.equals<--inFacility.getStorages THEN
+         bool = TRUE
+      ELSE
+         bool = FALSE
+   
+   //Purpose: return a specific storage container
+   //Date Modified: 23/05/2018
+   SUB MODULE getStorage
+   IMPORT: inStore (integer)
+   EXPORT: storage (Storage)
+   ASSERTION: return the Storage container at array index inStore
+   ALGORITHM:
+      IF inStore >= 0 AND inStore < SIZE OF storages THEN
+         storage = storages[inStore]
+      ELSE
+         FAIL WITH IllegalArgumentException
+
+   //Purpose: return a specific storage container
+   //Date Modified: 23/05/2018
+   SUB MODULE getStorage
+   IMPORT: inStore (String)
+   EXPORT: storage (Storage)
+   ASSERTION: return the Storage container at array index inStore
+   ALGORITHM:
+      i = 0
+      DO
+         IF inStore SAME AS STORES[i] THEN
+            storage = storages[i]
+         ELSE
+            i = i + 1
+      WHILE i < SIZE OF storages AND storage IS NULL
+      IF storage IS NULL THEN
+         FAIL WITH IllegalArgumentException
+
+   SUB MODULE toString
+   IMPORT: none
+   EXPORT: string (String)
+   ASSERTION: EXPORTs a descriptive String of object state
+   ALGORITHM:
+      FOR i = 0 TO SIZE OF storages CHANGEBY 1
+         OUTPUT storages[i]
+
+   SUB MODULE clone
+   IMPORT: none
+   EXPORT: facility (Facility)
+   ASSERTION: EXPORTs a new Name object with identical state to THIS
+   ALGORITHM:
+      CONSTRUCT facility USING COPY CONSTRUCTOR WITH THIS
+
+MUTATORS:
+   SUB MODULE setStorages
+   IMPORT: inStorages (ARRAY OF Storage)
+   EXPORT: none
+   ASSERTION: Sets storages to inStorage if inStorage is a valid input
+   ALGORITHM:
+      IF inStorages NOT NULL THEN
+         storages = inStorages
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+DOING METHODS:
+   //Purpose: Write out contents of storage to csv file
+   //Date Modified: 23/05/2018
+   SUB MODULE writeCSV
+   IMPORT: fileName (String)
+   EXPORT: none
+   ASSERTION: writes out the details of storage in 3 lines then all food items
+   ALGORITHM:
+      pw = SUtil.getWriter<--fileName
+      FOR i = 0 TO SIZE OF storages (exclusive) CHANGEBY 1
+         OUTPUT VIA pw: storages[i].getCSV<--none
+      FOR i = 0 TO SIZE OF storages (exclusive) CHANGEBY 1
+         tempArray = storages.getCSVArray<--none
+         FOR j = 0 TO SIZE OF tempArray CHANGEBY 1
+            OUTPUT VIA pw: tempArray[j]
+            //Use line by line writing to ensure compatibility (as opposed to
+            //  \n to connect everything)
+      SUtil.closeFile<--pw
+
+
+   //Purpose: add a food to applicable storage
+   //Date Modified: 23/05/2018
+   SUB MODULE addFood
+   IMPORT: food (Food)
+   EXPORT: success (boolean)
+   ASSERTION: add food to applicable storage or throw exception
+   ALGORITHM:
+      success = FALSE
+      i = 0
+      running = TRUE
+      DO
+         IF food.getTemperature<--none > storages[i].getMinTemp<--none AND
+            food.getTemperature<--none < storages[i].getMaxTemp<--none THEN
+            success = storages[i].addFood<--food
+            running = FALSE
+         ELSE
+            INCREMENT i
+      WHILE running AND i < SIZE OF storages
+      IF running THEN
+         FAIL WITH InvalidStateException
+
+   //Purpose: Find all expired food and remove it
+   //Date Modified: 23/05/2018
+   SUB MODULE findExpired
+   IMPORT: none
+   EXPORT: none
+   ASSERTION: call findExpired in all Storages
+   ALGORITHM:
+      FOR i = 0 TO SIZE OF storages (exclusive) CHANGEBY 1
+         storages[i].findExpired<--none
+
+PRIVATE METHODS:
+   //Purpose: import a file 
+   //Date Modified: 28/05/2018
+   SUB MODULE importFood
+   IMPORT: reader (Scanner)
+   EXPORT: none
+   ASSERTION: reader all lines, adding food when valid
+   ALGORITHM:
+      WHILE reader HAS NEXT STRING
+         line = ""
+         food = NULL
+         TRY
+            line = reader.next<--none
+            tokens = line.split<--", "
+            IF (tokens[0] SAME AS "Meat" AND SIZE OF tokens EQUALS 7) THEN
+               CONSTRUCT food Meat USING tokens
+            ELSE IF (tokens[0] SAME AS "Grain" AND SIZE OF tokens EQUALS 7)
+                                                                         THEN
+               CONSTRUCT food Grain USING tokens
+            ELSE IF (tokens[0] SAME AS "Fruit" AND SIZE OF tokens EQUALS 7)
+                                                                         THEN
+               CONSTRUCT food Fruit USING tokens
+            ELSE IF (tokens[0] SAME AS "Vegetable" AND 
+                                 SIZE OF tokens EQUALS 6) THEN
+               CONSTRUCT food Vegetable USING tokens
+         CATCH IllegalArgumentException e
+            OUTPUT "Error with food: " + line
+
+         IF food NOT NULL THEN
+            addFood<--food
+         ELSE
+            OUTPUT "Error with food: " + line

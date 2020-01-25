@@ -1,0 +1,168 @@
+/*****************************************************************************
+* File:      Vegetable.txt                                                   *
+* Author:    Sean Ashton * Student ID: 14866636                              *
+* Unit:      COMP1001 Object Oriented Program Design                         *
+* Purpose:   Vegetable object                                                *
+* Reference: None.                                                           *
+* Comments:  This comment block is the maximum width of 78 characters.       *
+* Requires:  Food, Calendar, SUtil                                           *
+* Created:   19/05/2018 * Last Modified: 19/05/2018                          *
+*****************************************************************************/
+CLASS: Vegetable INHERITS FROM Food
+
+PUBLIC CLASS CONSTANTS:
+   WEIGHTMIN = 0.2
+   WEIGHTMAX = 5.0
+   SPACEMULT = 1.025 // weight to volume multiplier
+
+CLASS FIELDS:
+   weight (real)
+   bestBefore (Calendar)
+
+CONSTRUCTORS:
+   DEFAULT: // This should never be used
+   IMPORT: none
+   EXPORT: Object Reference
+   ASSERTION: ... is a valid default state
+   ALGORITHM:
+      super<--none
+      weight = 0.2 //Smallest weight
+      bestBefore = Calendar.getInstance<--none
+
+   ALTERNATE:
+   IMPORT: inName (String), inTemp (real), inPack (String),
+            inWeight (real), inBestBefore (Calendar)
+   EXPORT: Object Reference
+   ASSERTION: Creates object if import are valid, otherwise FAILS
+   ALGORITHM:
+      super<--inName,inTemp,inPack
+      //Set methods will make copies of Objects passed to them
+      setBestBefore<--inBestBefore
+      setWeight<--inWeight
+
+   CSVSTRING:
+   IMPORT: tokens (ARRAY OF String)
+   EXPORT: Object Reference
+   ASSERTION: Creates object from CSV string
+   ALGORITHM:
+      super<--tokens[1],CONVERT TO real tokens[3],tokens[5]
+      setWeight<--CONVERT TO real tokens[2]
+      setBestBefore<--CONVERT TO Calendar tokens[4]
+
+   COPY:
+   IMPORT: toCopy (Vegetable)
+   EXPORT: Object Reference
+   ASSERTION: Constructs an object with identical state to the import
+   ALGORITHM:
+      super<--toCopy
+      bestBefore = toCopy.getBestBefore<--none
+      weight = toCopy.getWeight<--none
+
+ACCESSORS:
+   //Purpose: return copy of class field bestBefore
+   //Date Modified: 20/05/2018
+   SUB MODULE getBestBefore
+   IMPORT: none
+   EXPORT: COPY OF bestBefore
+
+   //Purpose: return class field weight
+   //Date Modified: 20/05/2018
+   SUB MODULE getWeight
+   IMPORT: none
+   EXPORT: weight
+
+   //Purpose: checks equality between Food Objects
+   //Date Modified: 20/05/2018
+   SUB MODULE equals
+   IMPORT: inFood (Food)
+   EXPORT: bool (boolean)
+   ASSERTION: Checks for if inFood has identical state to THIS
+   ALGORITHM:
+      bool = FALSE
+      IF inFood IS A Vegetable THEN
+         MAKE inFood INTO Vegetable
+         IF super.equals<--inFood THEN
+            IF SUtil.realEquals<--weight,inFood.getWeight<--none,0.01 THEN
+               IF bestBefore SAME AS inFood.getBestBefore<--none THEN
+                  bool = TRUE
+
+   //Purpose: Return a descriptive string of object state
+   //Date Modified: 28/05/2018
+   SUB MODULE toString
+   IMPORT: none
+   EXPORT: string (String)
+   ASSERTION: EXPORTs a descriptive String of object state
+   ALGORITHM:
+      string = super.toString<--none + ". Weight: " + weight + 
+               ". Best Before: " + bestBefore
+
+   //Purpose: return a copy of THIS Vegetable
+   //Date Modified: 20/05/2018
+   SUB MODULE clone
+   IMPORT: none
+   EXPORT: vegetable (Vegetable)
+   ASSERTION: EXPORTs a new Vegetable object with identical state to THIS
+   ALGORITHM:
+      CONSTRUCT vegetable USING COPY CONSTRUCTOR WITH THIS
+
+   //Purpose: generate a string to store
+   //Date Modified: 23/05/2018
+   SUB MODULE getCSV
+   IMPORT: none
+   EXPORT: csv (String)
+   ASSERTION: EXPORTS a string for storage in a csv file
+   ALGORITHM:
+      csv = "Vegetable, " + getName<--none +", " + weight + ", " +
+         getTemperature<--none + ", " + bestBefore FORMAT AS dd/mm/yyyy + 
+         ", " + getPackaging<--none
+
+   SUB MODULE calcExpiry
+   IMPORT: today (Calendar)
+   EXPORT: bool (boolean)
+   ASSERTION: bool will be true only if bestBefore is after today
+   ALGORITHM:
+      IF bestBefore.before<--today THEN
+         bool = TRUE
+      ELSE
+         bool = FALSE
+
+   SUB MODULE calcSpace
+   IMPORT: food (Food)
+   EXPORT: litres (integer)
+   ASSERTION: litres will be weight * 1.0 rounded up
+   ALGORITHM:
+      litres = CONVERT TO integer (ROUND UP (weight * SPACEMULT))
+
+MUTATORS:
+   //Purpose: set class field weight if input is within range
+   //Date Modified: 20/05/2018
+   SUB MODULE setWeight
+   IMPORT: inWeight (real)
+   EXPORT: none
+   ASSERTION: Sets weight to inWeight if inWeight is a valid input
+   ALGORITHM:
+      IF WEIGHTMIN < inWeight < WEIGHTMAX THEN
+         weight = inWeight
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: set class field bestBefore if input date is now or future
+   //Date Modified: 20/05/2018
+   SUB MODULE setBestBefore
+   IMPORT: inBestBefore (Calendar)
+   EXPORT: none
+   ASSERTION: Sets bestBefore to inBestBefore if inBestBefore is a valid input
+   ALGORITHM:
+      today = (Calendar of time now)
+      IF inBestBefore NOT NULL THEN
+         IF NOT inBestBefore.before<--today THEN
+            bestBefore = COPY OF inBestBefore
+         ELSE
+            FAIL WITH IllegalArgumentException
+      ELSE
+         FAIL WITH NullPointerException
+
+DOING METHODS:
+
+PRIVATE METHODS:
+

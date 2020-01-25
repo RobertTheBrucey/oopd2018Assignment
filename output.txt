@@ -1,0 +1,7 @@
+Freezer, 20
+Fridge, 50
+Pantry, 100
+Meat, Beef, fillet, 1.3, -18.0, 1/9/2018, Vacuum packed
+Vegetable, carrot, 2.0, 4.0, 1/8/2018, bag
+Fruit, apple, golden delicious, 6, 3.0, 1/7/2018, loose
+Grain, Wheat, Weetbix, 2.0, 18.0, 1/10/2018, box

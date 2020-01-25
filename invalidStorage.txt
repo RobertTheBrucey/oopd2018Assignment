@@ -1,0 +1,3 @@
+Freezer, 100
+Fridge, 23
+Potato, 20

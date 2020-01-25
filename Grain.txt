@@ -1,0 +1,197 @@
+/*****************************************************************************
+* File:      Grain.txt                                                       *
+* Author:    Sean Ashton * Student ID: 14866636                              *
+* Unit:      COMP1001 Object Oriented Program Design                         *
+* Purpose:   Grain object                                                    *
+* Reference: None.                                                           *
+* Comments:  This comment block is the maximum width of 78 characters.       *
+* Requires:  Food, Calendar, SUtil                                           *
+* Created:   19/05/2018 * Last Modified: 28/05/2018                          *
+*****************************************************************************/
+CLASS: Grain INHERITS FROM Food
+
+PUBLIC CLASS CONSTANTS:
+   VOLUMEMIN = 0.2
+   VOLUMEMAX = 5.0
+   SPACEMULT = 1.0 // multiplier for IFood implementation
+
+CLASS FIELDS:
+   type (String)
+   volume (real)
+   bestBefore (Calendar)
+
+CONSTRUCTORS:
+   DEFAULT: //This should never be used
+   IMPORT: none
+   EXPORT: Object Reference
+   ASSERTION: ... is a valid default state
+   ALGORITHM:
+      super<--none
+      type = ""
+      volume = 0.2 //Set minimum size for default
+      bestBefore = Calendar.getInstance<--none
+
+   ALTERNATE:
+   IMPORT: inName (String), inTemp (real), inPack (String), inType (String),
+            in (real), inBestBefore (Calendar)
+   EXPORT: Object Reference
+   ASSERTION: Creates object if import are valid, otherwise FAILS
+   ALGORITHM:
+      super<--inName,inTemp,inPack
+      //Validation and copying done by set methods - avoid duplicate code
+      setType<--inType
+      setBestBefore<--inBestBefore
+      setVolume<--inVolume
+
+   CSVSTRING:
+   IMPORT: tokens (ARRAY OF String)
+   EXPORT: Object Reference
+   ASSERTION: Creates object from CSV string
+   ALGORITHM:
+      super<--tokens[1],CONVERT TO real tokens[4],tokens[6]
+      setType<--tokens[2]
+      setVolume<--CONVERT TO real tokens[3]
+      setBestBefore<--CONVERT TO Calendar tokens[5]
+
+   COPY:
+   IMPORT: toCopy (Grain)
+   EXPORT: Object Reference
+   ASSERTION: Constructs an object with identical state to the import
+   ALGORITHM:
+      super<--toCopy
+      //get methods always return copies of Objects
+      type = toCopy.getType<--none
+      bestBefore = toCopy.getBestBefore<--none
+      volume = toCopy.get<--none
+
+ACCESSORS:
+   //Purpose: return a copy of class field type
+   //Date Modified: 20/05/2018
+   SUB MODULE getType
+   IMPORT: none
+   EXPORT: COPY OF type
+
+   //Purpose: return a copy of class field bestBefore
+   //Date Modified: 20/05/2018
+   SUB MODULE getBestBefore
+   IMPORT: none
+   EXPORT: COPY OF bestBefore
+
+   //Purpose: return class field volume
+   //Date Modified: 20/05/2018
+   SUB MODULE get
+   IMPORT: none
+   EXPORT: volume
+
+   //Purpose: Check equality between Food items
+   //Date Modified: 28/05/2018
+   SUB MODULE equals
+   IMPORT: inFood (Food)
+   EXPORT: bool (boolean)
+   ASSERTION: Checks for if inFood has identical state to THIS
+   ALGORITHM:
+      bool = FALSE
+      IF inFood IS A Grain THEN
+         MAKE inFood INTO Grain
+         IF super.equals<--inFood THEN
+            IF type SAME AS inFood.getType<--none THEN
+               //Compare real with tolerance
+               IF SUtil.realEquals<--volume,inFood.get<--none,0.01 THEN
+                  IF bestBefore SAME AS inFood.getBestBefore<--none THEN
+                     bool = TRUE
+
+   //Purpose: return a descriptive string of Grain state
+   //Date Modified: 28/05/2018
+   SUB MODULE toString
+   IMPORT: none
+   EXPORT: string (String)
+   ASSERTION: EXPORTs a descriptive String of object state
+   ALGORITHM:
+      string = super.toString<--none + ". Type: " + type + ". : " +
+               volume + ". Best Before: " + bestBefore
+
+   //Purpose: return a copy of THIS Grain
+   //Date Modified: 20/05/2018
+   SUB MODULE clone
+   IMPORT: none
+   EXPORT: grain (Grain)
+   ASSERTION: EXPORTs a new Grain object with identical state to THIS
+   ALGORITHM:
+      CONSTRUCT grain USING COPY CONSTRUCTOR WITH THIS
+
+   //Purpose: Generate a string to store
+   //Date Modified: 28/05/2018
+   SUB MODULE getCSV
+   IMPORT: none
+   EXPORT: csv (String)
+   ASSERTION: EXPORTS a string for storage in a csv file
+   ALGORITHM:
+      csv = "Grain, " + getName<--none + ", " + type + ", " + volume + ", " +
+               getTemperature<--none + ", " + 
+               bestBefore FORMAT AS dd/mm/yyyy + ", " + getPackaging<--none
+
+   //Interface Methods
+   SUB MODULE calcExpiry
+   IMPORT: today (Calendar)
+   EXPORT: bool (boolean)
+   ASSERTION: bool will be true only if bestBefore is after today
+   ALGORITHM:
+      IF bestBefore.before<--today THEN
+         bool = TRUE
+      ELSE
+         bool = FALSE
+
+   SUB MODULE calcSpace
+   IMPORT: food (Food)
+   EXPORT: litres (integer)
+   ASSERTION: litres will be volume * 1.0 rounded up
+   ALGORITHM:
+      litres = CONVERT TO integer (ROUND UP (volume * SPACEMULT))
+
+MUTATORS:
+   //Purpose: Set class field type with sanitation
+   //Date Modified: 20/05/2018
+   SUB MODULE setType
+   IMPORT: inType (String)
+   EXPORT: none
+   ASSERTION: Sets type to inType if inType is a valid input
+   ALGORITHM:
+      IF inType NOT NULL THEN
+         //Remove problematic characters from String
+         type = SUtil.csvSanitise<--inType
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: Set volume if input is within range
+   //Date Modified: 20/05/2018
+   SUB MODULE setVolume
+   IMPORT: inVolume (real)
+   EXPORT: none
+   ASSERTION: Sets volume to in if in is a valid input
+   ALGORITHM:
+      IF VOLUMEMIN <= inVolume <= VOLUMEMAX THEN
+         volume = inVolume
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: Set Best Before if input is in the future or now
+   //Date Modified: 20/05/2018
+   SUB MODULE setBestBefore
+   IMPORT: inBestBefore (Calendar)
+   EXPORT: none
+   ASSERTION: Sets bestBefore to inBestBefore if inBestBefore is a valid input
+   ALGORITHM:
+      today = (Calendar of time now)
+      IF inBestBefore NOT NULL THEN
+         //Best before must be later than today (otherwise why store it?)
+         IF NOT inBestBefore.before<--today THEN
+            bestBefore = COPY OF inBestBefore
+         ELSE
+            FAIL WITH IllegalArgumentException
+      ELSE
+         FAIL WITH NullPointerException
+
+DOING METHODS:
+
+PRIVATE METHODS:
+

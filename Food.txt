@@ -1,0 +1,168 @@
+/*****************************************************************************
+* File:      Food.txt                                                        *
+* Author:    Sean Ashton * Student ID: 14866636                              *
+* Unit:      COMP1001 Object Oriented Program Design                         *
+* Purpose:   Abstract class for all Foods                                    *
+* Reference: None.                                                           *
+* Comments:  This comment block is the maximum width of 78 characters.       *
+* Requires:  SUtil                                                           *
+* Created:   19/05/2018 * Last Modified: 28/05/2018                          *
+*****************************************************************************/
+CLASS: Food IMPLEMENTS IFood
+
+PUBLIC CLASS CONSTANTS:
+   MINTEMPA = -27.0 //Freezer lower limit
+   MAXTEMPA = -5.0 //Freezer higher limit
+   MINTEMPB = -2.0 //Fridge lower limit
+   MAXTEMPB = 6.0 //Fridge higher limit
+   MINTEMPC = 8.0 //Pantry lower limit
+   MAXTEMPC = 25.0 //Pantry upper limit
+
+CLASS FIELDS:
+   name (String)
+   temperature (real)
+   packaging (String)
+
+CONSTRUCTORS:
+   DEFAULT: //This constructor shouldn't ever be used
+   IMPORT: none
+   EXPORT: Object Reference
+   ASSERTION: ... is a valid default state
+   ALGORITHM:
+      name = ""
+      temperature = 24.0 //Assume room temperature
+      packaging = ""
+
+   ALTERNATE: //set methods will make copies of Object where necessary
+   IMPORT: inName (String), inTemp (real), inPack (String)
+   EXPORT: Object Reference
+   ASSERTION: Creates object if import are valid, otherwise FAILS
+   ALGORITHM:
+      setName<--inName
+      setPackaging<--inPack
+      setTemperature<--inTemp
+
+   COPY: //get methods always return a copy of Objects
+   IMPORT: toCopy (Food)
+   EXPORT: Object Reference
+   ASSERTION: Constructs an object with identical state to the import
+   ALGORITHM:
+      //All get methods return copies of the requested data
+      name = toCopy.getName<--none
+      pacacking = toCopy.getPackaging<--none
+      temperature = toCopy.getTemperature<--none
+
+ACCESSORS:
+   //Purpose: Return copy of name
+   //Date Modified: 20/05/2018
+   SUB MODULE getName
+   IMPORT: none
+   EXPORT: COPY OF name
+
+   //Purpose: Return copy of packaging
+   //Date Modified: 20/05/2018
+   SUB MODULE getPackaging
+   IMPORT: none
+   EXPORT: COPY OF packaging
+
+   //Purpose: Return temperature
+   //Date Modified: 20/05/2018
+   SUB MODULE getTemperature
+   IMPORT: none
+   EXPORT: temperature
+
+   //Purpose: Check equality between Food Objects
+   //Date Modified: 20/05/2018
+   SUB MODULE equals
+   IMPORT: inFood (Food)
+   EXPORT: bool (boolean)
+   ASSERTION: Checks for if inName has identical state to THIS
+   ALGORITHM:
+      bool = FALSE
+      IF name SAME AS inFood.getName<--none THEN
+         IF packaging SAME AS inFood.getPackaging<--none THEN
+            //real numbers are checked for equality with a tolerance
+            IF SUtil.realEquals<--temperature,
+                                    inFood.getTemperature<--none,0.01 THEN
+               bool = TRUE
+
+   //Purpose: Return a descriptive string of THIS state
+   //Date Modified: 20/05/2018
+   SUB MODULE toString
+   IMPORT: none
+   EXPORT: string (String)
+   ASSERTION: EXPORTs a descriptive String of object state
+   ALGORITHM:
+      string = "Name: " + name + ". Temperature: " + temperature + 
+      ". Packaging: " + packaging
+
+   //Purpose: Return copy of THIS Food Object
+   //Date Modified: 28/05/2018
+   SUB MODULE clone
+   IMPORT: none
+   EXPORT: food (Food)
+   ASSERTION: EXPORTs a new Name object with identical state to THIS
+   ALGORITHM: ABSTRACT
+
+   //Purpose: Export a string to store in a csv file
+   //Date Modified: 23/05/2018
+   SUB MODULE getCSV
+   IMPORT: none
+   EXPORT: csv (String)
+   ALGORITHM: ABSTRACT
+
+   //Interface methods
+   SUB MODULE calcExpiry
+   IMPORT: today (Calendar)
+   EXPORT: bool (Boolean)
+   ALGORITHM: ABSTRACT
+
+   SUB MODULE calcSpace
+   IMPORT: food (Food)
+   EXPORT: litres (integer)
+   ALGORITHM: ABSTRACT
+
+MUTATORS:
+   //Purpose: set class field name if not NULL, in a sanitised format
+   //Date Modified: 20/05/2018
+   SUB MODULE setName
+   IMPORT: inName (String)
+   EXPORT: none
+   ASSERTION: Sets name to inName if inName is a valid input
+   ALGORITHM:
+      IF inName NOT NULL THEN
+         //Remove commas(in particular) from name
+         name = SUtil.csvSanitise<--(COPY OF inName)
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: set class field packaging if not NULL, in a sanitised format
+   //Date Modified: 20/05/2018
+   SUB MODULE setPackaging
+   IMPORT: inPack (String)
+   EXPORT: none
+   ASSERTION: Sets packaging to inPack if inPack is a valid input
+   ALGORITHM:
+      IF inPack NOT NULL THEN
+         packaging = SUtil.csvSanitise<--(COPY OF inPack)
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: set class field temperature if in valid range per spec
+   //Date Modified: 28/05/2018
+   SUB MODULE setTemperature
+   IMPORT: inTemp (real)
+   EXPORT: none
+   ASSERTION: Sets temperature to inTemp if inTemp is a valid input
+   ALGORITHM:
+      IF ((MINTEMPA < inTemp < MAXTEMPA) OR
+            (MINTEMPB < inTemp < MAXTEMPB) OR
+               (MINTEMPC < inTemp < MAXTEMPC)) THEN
+               temperature = inTemp
+      ELSE
+         FAIL WITH IllegalArgumentException
+
+DOING METHODS:
+
+PRIVATE METHODS:
+

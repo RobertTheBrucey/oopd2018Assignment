@@ -1,0 +1,5 @@
+Fridge, 3
+Freezer, 3
+Pantry, 3
+Meat, Words, test, 2.0, -18.0, 01/01/2019, Vacc
+Meat, Words, test, 2.3, -17.0, 02/02/2019, pot

@@ -1,0 +1,209 @@
+/*****************************************************************************
+* File:      SUtil.txt                                                       *
+* Author:    Sean Ashton * Student ID: 14866636                              *
+* Unit:      COMP1001 Object Oriented Program Design                         *
+* Purpose:   Utility Methods                                                 *
+* Reference: None.                                                           *
+* Comments:  This comment block is the maximum width of 78 characters.       *
+* Requires:  Nothing. List dependencies here                                 *
+* Created:   13/04/2018 * Last Modified: 17/05/2018                          *
+*****************************************************************************/
+
+/*****************************************************************************
+* Purpose: Ask user for Integer input                                        *
+* Date Modified: 12/04/2018                                                  *
+*****************************************************************************/
+SUB MODULE inputInt
+   IMPORT: prompt(String), min, max (integer)
+   EXPORT: userInt (integer)
+   ASSERTION: userInt will be an Integer between min and max inclusive
+   ALGORITHM:
+      error = ""
+      DO
+         TRY
+            OUTPUT error
+            OUTPUT prompt
+            INPUT userInt
+            IF userInt < min THEN
+               error = "Integer must be greater than or equal to " + min
+            ELSEIF userInt > max THEN
+               error = "Integer must be less than or equal to " + max
+            ASSERTION error will contain the error message if invalid input
+         CATCH invalid data type
+            error = "Input must be an integer"
+            CLEAR INPUT
+      WHILE userInt < min OR userInt > max
+      ASSERTION userInt will contain an Integer between min and max
+END getInteger
+
+/*****************************************************************************
+* Purpose: Check equality of real numbers
+* Date Modified: 17/05/2018
+*****************************************************************************/
+SUB MODULE realEquals
+   IMPORT: realA (real), realB (real), tolerance (real)
+   EXPORT: bool (boolean)
+   ASSERTION: bool will be true only when realA and realB are within tolerance
+   ALGORITHM:
+      bool = (ABSOLUTE(realA - realB) < tolerance)
+
+   //Purpose: Removes problem characters for csv storage
+   //Date Modified: 27/05/2018
+   SUB MODULE csvSanitise
+   IMPORT: inString (String)
+   EXPORT: string (String)
+   ASSERTION: string will be inString minus any problem characters
+   ALGORITHM:
+      string = inString.replaceAll<--",",""
+
+   //Purpose: Ask user for real number input
+   //Date Modified: 27/05/2018
+   SUB MODULE inputReal
+   IMPORT: prompt (String), min (real), max (real)
+   EXPORT: userReal (real)
+   ASSERTION: userReal will be a real between min and max inclusive
+   ALGORITHM:
+      error = ""
+      DO
+         TRY
+            OUTPUT error
+            OUTPUT prompt
+            INPUT userInt
+            IF userReal < min THEN
+               error = "Number must be greater than or equal to " + min
+            ELSEIF userReal > max THEN
+               error = "Number must be less than or equal to " + max
+            ASSERTION error will contain the error message if invalid input
+         CATCH invalid data type
+            error = "Input must be a number"
+            CLEAR INPUT
+      WHILE userReal < min OR userReal > max
+      ASSERTION userReal will contain a real between min and max
+   END inputReal
+
+   //Purpose: Gets a date from the user not before inDate
+   //Date Modified: 28/05/2018
+   SUB MODULE inputDate
+   IMPORT: prompt (String), inDate (Calendar)
+   EXPORT: date (Calendar)
+   ASSERTION: date will not be before inDate
+   ALGORITHM:
+      date = NULL
+      DO
+         OUTPUT error
+         OUTPUT prompt
+         OUTPUT "Please input a date after " + inDate
+         OUTPUT "In the format dd/mm/yyyy"
+         INPUT userDate
+
+         IF userDate.matches<--"(\d{2}\/){2}\d{4}" THEN
+            tokens = TOKENISE userDate BY "/"
+            ints = ARRAY OF integer SIZE OF 3
+            FOR i = 0 TO 2 CHANGEBY 1
+               ints[i] = CONVERT TO integer tokens[i]
+            //Month is 0 based
+            DECREMENT ints[1]
+            date = Calendar.getInstance<--none
+            date.setLenient<--FALSE
+            TRY
+               date.set<--ints[2],ints[1],ints[0]
+            CATCH ArrayIndexException e
+               error = "Invalid date: " + e.getMessage<--none
+
+         ELSE THEN
+            error = "Date must in the format of dd/mm/yyyy"
+            ASSERTION error will contain the error message if invalid input
+      WHILE date IS NULL
+   END inputDate
+      
+
+   //Purpose: Open a file and construct a writer
+   //Date Modified: 25/05/2018
+   SUB MODULE getWriter
+   IMPORT: fileName (String)
+   EXPORT: writer (PrintWriter)
+   ASSERTION: Opens a file and returns a writer
+   ALGORITHM:
+      TRY
+         openFile = OPENFILE fileName
+         writer = PrintWriter FROM openFile
+      CATCH FileIOException e
+         throw IllegalArgumentException
+
+   //Purpose: Close a writer previously opened with getWriter
+   //Date Modified: 25/05/2018
+   SUB MODULE closeWriter
+   IMPORT: writer (PrintWriter)
+   EXPORT: none
+   ASSERTION: attempts to close the PrintWriter file
+   ALGORITHM:
+      TRY
+         writer.close<--none
+      CATCH FileIOException e
+
+   //Purpose: Open a file and construct a reader
+   //Date Modified: 25/05/2018
+   SUB MODULE getReader
+   IMPORT: fileName (String)
+   EXPORT: sc (Reader)
+   ASSERTION: Opens a file, sets up a reader and returns it
+   ALGORITHM:
+      TRY
+         openFile = OPENFILE fileName
+         reader = Reader FROM fileName
+      CATCH FileIOException e
+         throw IllegalArgumentException
+
+   //Purpose: Close a reader previously opened with getReader
+   //Date Modified: 25/05/2018
+   SUB MODULE closeReader
+   IMPORT: reader (Reader)
+   EXPORT: none
+   ASSERTION: attempts to close the Reader file
+   ALGORITHM:
+      TRY
+         reader.close<--none
+      CATCH FileIOException e
+
+   //Purpose: Convert a String to Calendar
+   //Date Modified: 28/05/2018
+   SUB MODULE stringToCal
+   IMPORT: string (String)
+   EXPORT: cal (Calendar)
+   ASSERTION: Converts a dd/mm/yyyy date to a calendar
+   ALGORITHM:
+      if string.matches<--"(\d{2}\/){2}\d{4}" THEN
+         tokens = TOKENISE userDate BY "/"
+         ints = ARRAY OF integer SIZE OF 3
+         FOR i = 0 TO 2 CHANGEBY 1
+            ints[i] = CONVERT TO integer tokens[i]
+         //Month is 0 based
+         DECREMENT ints[1]
+         date = Calendar.getInstance<--none
+         date.setLenient<--FALSE
+         TRY
+            date.set<--ints[2],ints[1],ints[0]
+         CATCH ArrayIndexException
+            FAIL WITH IllegalArgumentException
+      ELSE THEN
+         FAIL WITH IllegalArgumentException
+      
+   //Purpose: Convert a Calendar to a String
+   //Date Modified: 28/05/2018
+   SUB MODULE calToString
+   IMPORT: cal (Calendar)
+   EXPORT: string (String)
+   ASSERTION: Converts a calendar into a string dd/mm/yyyy
+   ALGORITHM:
+      string = ""
+      day = cal.get<--Calendar.DATE
+      month = cal.get<--Calendar.MONTH + 1
+      year = cal.get<--Calendar.YEAR
+      IF day <= 9 THEN
+         string = "0" + day + "/"
+      ELSE
+         string = day + "/"
+      IF month <= 9 THEN
+         string = string + "0" + month + "/" + year
+      ELSE
+         string = string + month + "/" + year

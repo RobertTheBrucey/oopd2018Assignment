@@ -1,0 +1,2 @@
+Pantry, 20
+Freezer, 204

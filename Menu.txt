@@ -1,0 +1,216 @@
+/*****************************************************************************
+* File:      Menu.txt                                                        *
+* Author:    Sean Ashton * Student ID: 14866636                              *
+* Unit:      COMP1001 Object Oriented Program Design                         *
+* Purpose:   Display a menu of options                                       *
+* Reference: None.                                                           *
+* Comments:  This comment block is the maximum width of 78 characters.       *
+* Requires:  Nothing. List dependencies here                                 *
+* Created:   15/05/2018 * Last Modified: 28/05/2018                          *
+*****************************************************************************/
+CLASS: Menu
+
+PUBLIC CLASS CONSTANTS:
+   MAX_TEMP = Food.MINTEMPA
+   MIN_TEMP = Food.MAXTEMPC
+
+CLASS FIELDS:
+
+   //Purpose: Present a menu to the user and accept interaction
+   //Date Modified: 28/05/2018
+   SUB MODULE run
+   IMPORT: none
+   EXPORT: none
+   ASSERTION: 
+   ALGORITHM:
+      run = TRUE
+      DO
+         OUTPUT "1: Add food"
+         OUTPUT "2: Remove food"
+         OUTPUT "3: Display Contents"
+         OUTPUT "4: Find Expired"
+         OUTPUT "5: Read in storage"
+         OUTPUT "6: Write out storage"
+         OUTPUT "7: Exit"
+
+         sel = SUtil.inputInt<--"Please enter a menu option (1-7)",1,7
+      
+         CASE sel
+            1: addFood<--facility
+            2: removeFood<--facility
+            3: displayContents<--facility
+            4:
+               IF facility NOT NULL THEN
+                  facility.findExpired<--none
+                  OUTPUT "Expired food has been removed"
+               ELSE
+                  OUTPUT "Storage must be read in from a file first"
+            5: readInStorage<--facility
+            6: writeOutStorage<--facility
+            7: run = FALSE
+         END CASE
+      WHILE (run)
+
+   //Purpose: Construct a food from user input and add it to facility
+   //Date Modified: 27/05/2018
+   SUB MODULE addFood
+   IMPORT: facility (Facility)
+   EXPORT: none
+   ASSERTION: Get user input to create a Food to add to facility
+   ALGORITHM:
+      IF facility NOT NULL THEN
+         food = makeFood<--none
+         success = FALSE
+         TRY
+            success = facility.addFood<--food
+         CATCH InvalidStateException e
+            OUTPUT "Inputted food is out valid temperature ranges"
+         IF NOT success THEN
+            OUTPUT "Storage location for food is full"
+      ELSE
+         OUTPUT "Storage must be read in from a file before adding food"
+
+   //Purpose: Make a food from user input
+   //Date Modified: 27/05/2018
+   SUB MODULE makeFood
+   IMPORT: none
+   EXPORT: food (Food)
+   ASSERTION: food will be a valid food
+   ALGORITHM:
+      OUTPUT "What kind of food would you like to add?"
+      OUTPUT "1: Meat"
+      OUTPUT "2: Grain"
+      OUTPUT "3: Fruit"
+      OUTPUT "4: Vegetable"
+      sel = SUtil.inputInt<--"Food type (1-4):",1,4
+      OUTPUT "Name of food?"
+      INPUT name
+      temp = SUtil.inputReal<--"Storage temperature of food?",MIN_TEMP,
+                                                               MAX_TEMP
+      OUTPUT "What is the food's packaging?"
+      INPUT packaging
+      TRY
+         CASE sel
+            1: //Meat construct
+               OUTPUT "What is the cut of meat?"
+               INPUT cut
+               weight = SUtil.inputReal<--"What is the weight of the meat?",
+                                                               0.2,5.0
+               date = SUtil.inputDate<--"What is the Use By Date of the " +
+                                           meat?", Calendar OF TODAY
+               CONSTRUCT food USING name, temp, packaging, cut, weight, date
+
+            2: //Grain construct
+               OUTPUT "What is the type of grain?"
+               INPUT type
+               volume = SUtil.inputReal<--"What is the volume of the grain?",
+                                                               0.2,5.0
+               date = SUtil.inputDate<--"What is the Before Before Date " +
+                                          "of the grain?", Calendar OF TODAY
+               CONSTRUCT food USING name, temp, packaging, type, volume, date
+
+            3: //Fruit construct
+               OUTPUT "What is the type of fruit?"
+               INPUT type
+               numPiece = SUtil.inputInt<--"How many pieces of fruit?",1,20
+               date = SUtil.inputDate<--"What is the Use By Date of " +
+                                          "the fruit?", Calendar OF TODAY
+               CONSTRUCT food USING name, temp, packaging, type, numPiece,
+                                                                      date
+
+            4: //Vegetable construct
+               weight = SUtil.inputReal<--"What is the weight of the " +
+                                             "vegetable?",0.2,5.0
+               date = SUtil.inputDate<--"What is the Before Before Date of " +
+                                          "the vegetable?", Calendar OF TODAY
+            CONSTRUCT food USING name, temp, packaging, weight, date
+         END CASE
+      CATCH IllegalArgumentException e
+         OUTPUT "There was a problem with one of the input fields."
+         OUTPUT e.getMessage<--none
+
+   //Purpose: Select and remove a specific food from facility
+   //Date Modified: 28/05/2018
+   SUB MODULE removeFood
+   IMPORT: facility (Facility)
+   EXPORT: none
+   ASSERTION: Prompts for food to delete
+   ALGORITHM:
+      IF facility NOT NULL THEN
+         OUTPUT "Which storage would you like to remove from?"
+         OUTPUT "1: Freezer"
+         OUTPUT "2: Fridge"
+         OUTPUT "3: Pantry"
+         sel = SUtil.inputInt<--"Storage location (1-3)?",1,3
+         storage = facility.getStorage<--(sel-1)
+         DO
+            OUTPUT "Which food would you like to remove? " +
+                     "(Enter 0 to list contents)"
+            //array indexes from 0 but we display from 1
+            sel = SUtil.inputInt<--"Food to remove?",0,
+                                       storage.getFoodCount<--none
+            IF sel EQUALS 0 THEN
+               OUTPUT storage.displayFood<--none
+            ELSE
+               TRY
+                  storage.removeFood<--sel-1
+               CATCH IllegalArgumentException e
+                  OUTPUT e.getMessage<--none
+         WHILE sel EQUALS 0
+      ELSE
+         OUTPUT "Storage must be read in from a file first"
+
+   //Purpose: Display the contents of all storages
+   //Date Modified: 27/05/2018
+   SUB MODULE displayContents
+   IMPORT: facility (Facility)
+   EXPORT: none
+   ASSERTION: Displays all food in a specific location
+   ALGORITHM:
+      IF facility NOT NULL THEN
+         OUTPUT "Which storage would you like to display contents of?"
+         OUTPUT "1: Freezer"
+         OUTPUT "2: Fridge"
+         OUTPUT "3: Pantry"
+         sel = SUtil.inputInt<--"Storage location (1-3)?",1,3
+         storage = facility.getStorage<--(sel-1)
+         OUTPUT storage.displayFood<--none
+      ELSE
+         OUTPUT "Storage must be read in from a file first"
+
+   //Purpose: Select and read in a file to construct facility
+   //Date Modified: 28/05/2018
+   SUB MODULE readInStorage
+   IMPORT: facility (Facility)
+   EXPORT: none
+   ASSERTION: Check for file and construct a facility with it.
+   ALGORITHM:
+      IF facility IS NULL THEN
+         OUTPUT "File name for storage input?"
+         INPUT fileName
+         TRY
+            CONSTRUCT facility USING fileName
+         CATCH IllegalArgumentException e
+            OUTPUT "Error with file: " + e.getMessage<--none
+         CATCH NullPointerException e
+            OUTPUT "Error with file: " + e.getMessage<--none
+      ELSE
+         OUTPUT "Storage has already been read in from file."
+
+   //Purpsoe: Prompt for filename to write facility to
+   //Date Modified: 27/05/2018
+   SUB MODULE writeOutStorage
+   IMPORT: facility (Facility)
+   EXPORT: none
+   ASSERTION: Write out storages to file after promt
+   ALGORITHM:
+      IF facility NOT NULL THEN
+         OUTPUT "File name for storage output?"
+         INPUT fileName
+         TRY
+            facility.writeCSV<--fileName
+         CATCH IllegalArgumentException e
+            OUTPUT "Error with file: " + e.getMessage<--none
+      ELSE
+         OUTPUT "Storage must be read in from a file first"
+      

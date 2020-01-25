@@ -1,0 +1,298 @@
+/*****************************************************************************
+* File:      Storage.txt                                                     *
+* Author:    Sean Ashton * Student ID: 14866636                              *
+* Unit:      COMP1001 Object Oriented Program Design                         *
+* Purpose:   Store Food within a temperature range                           *
+* Reference: None.                                                           *
+* Comments:  This comment block is the maximum width of 78 characters.       *
+* Requires:  SUtil                                                           *
+* Created:   20/05/2018 * Last Modified: 20/05/2018                          *
+*****************************************************************************/
+CLASS: Storage
+
+PUBLIC CLASS CONSTANTS:
+   MINTEMP = -273.15 //Temperature must be above absolute 0
+   MAXTEMP = 5660.0 //Temperature must be below the boiling point of Tungsten
+
+CLASS FIELDS:
+   name (String)
+   food (ARRAY OF Food)
+   minTemp (real)
+   maxTemp (real)
+   foodCount (integer)
+
+CONSTRUCTORS:
+   DEFAULT: // This should generally not be used
+   IMPORT: none
+   EXPORT: Object Reference
+   ASSERTION: ... is a valid default state
+   ALGORITHM:
+      name = "Storage"
+      food = ARRAY OF Food SIZE OF 100
+      minTemp = 8.0
+      maxTemp = 25.0
+      foodCount = 0
+
+   ALTERNATE:
+   IMPORT: inName (String), inCapacity (integer), inMinTemp (real),
+            inMaxTemp (real)
+   EXPORT: Object Reference
+   ASSERTION: Creates object if import are valid, otherwise FAILS
+   ALGORITHM:
+      //set methods copy Objects passed to them
+      //set methods also validate input
+      setName<--inName
+
+      IF inCapacity > 0 THEN
+         food = ARRAY OF food SIZE OF inCapacity
+         foodCount = 0
+      ELSE
+         FAIL WITH IllegalArgumentException
+
+      setMinTemp<--inMinTemp
+
+      IF inMaxTemp < inMinTemp THEN
+         FAIL WITH IllegalArgumentException
+      ELSE
+         setMaxTemp<--inMaxTemp
+
+   COPY:
+   IMPORT: toCopy (Storage)
+   EXPORT: Object Reference
+   ASSERTION: Constructs an object with identical state to the import
+   ALGORITHM:
+      name<--toCopy.getName<--none
+      food = toCopy.getFood<--none
+      minTemp = toCopy.getMinTemp<--none
+      maxTemp = toCopy.getMaxTemp<--none
+      foodCount = toCopy.getFoodCount<--none
+
+ACCESSORS:
+   //Purpose: Return a copy class field name
+   //Date Modified: 20/05/2018
+   SUB MODULE getName
+   IMPORT: none
+   EXPORT: COPY OF name
+   
+   //Purpose: Return class field minTemp
+   //Date Modified: 20/05/2018
+   SUB MODULE getMinTemp
+   IMPORT: none
+   EXPORT: minTemp
+   
+   //Purpose: Return class field maxTemp
+   //Date Modified: 20/05/2018
+   SUB MODULE getMaxTemp
+   IMPORT: none
+   EXPORT: maxTemp
+
+   //Purpose: Return size of food array
+   //Date Modified: 20/05/2018
+   SUB MODULE getCapacity
+   IMPORT: none
+   EXPORT: capacity
+   ASSERTION:
+   ALGORITHM:
+      capacity = SIZE OF food
+
+   //Purpose: Return copy of class field food
+   //Date Modified: 20/05/2018
+   SUB MODULE getFood
+   IMPORT: none
+   EXPORT: COPY OF food
+
+   //Purpose: Return class field foodCount
+   //Date Modified: 20/05/2018
+   SUB MODULE getFoodCount
+   IMPORT: none
+   EXPORT: foodCount
+
+   //Purpose: Return free space
+   //Date Modified: 20/05/2018
+   SUB MODULE getFreeSpace
+   IMPORT: none
+   EXPORT: freeSpace
+   ASSERTION: Calculates free space and returns in
+   ALGORITHM:
+      freeSpace = (SIZE OF food) - foodCount
+
+   //Purpose: Check equality between Storage Objects
+   //Date Modified: 20/05/2018
+   SUB MODULE equals
+   IMPORT: inStorage (Storage)
+   EXPORT: bool (boolean)
+   ASSERTION: Checks for if inStorage has identical state to THIS
+   ALGORITHM:
+      bool = FALSE
+      IF name SAME AS inStorage.getName<--none THEN
+         IF foodCount == inStorage.getFoodCount<--none THEN
+            IF SUtil.realEquals<--minTemp,inStorage.getMinTemp<--none,
+                                                                  0.0001 THEN
+               IF SUtil.realEquals<--maxTemp,inStorage.getMaxTemp<--none,
+                                                                  0.0001 THEN
+                  IF getCapacity<--none  == inStorage.getCapacity<--none THEN
+                     //Leave array check until last for efficiency
+                     IF food.equals<--inStorage.getFood<--none THEN
+                        bool = TRUE
+
+   //Purpose: Return a descriptive string of Object
+   //Date Modified: 20/05/2018
+   SUB MODULE toString
+   IMPORT: none
+   EXPORT: string (String)
+   ASSERTION: EXPORTs a descriptive String of object state
+   ALGORITHM:
+      string = "Name: " + name + ". Capacity: " + getCapacity +
+               "Food Count: " + foodCount + ". Free Space" + getFreeSpace +
+               ". Min Temperature: " + minTemp + ". Max Temperature: " +
+               maxTemp 
+
+   //Purpose: Return a copy of THIS Storage
+   //Date Modified: 20/05/2018
+   SUB MODULE clone
+   IMPORT: none
+   EXPORT: storage (Storage)
+   ASSERTION: EXPORTs a new Name object with identical state to THIS
+   ALGORITHM:
+      CONSTRUCT storage USING COPY CONSTRUCTOR WITH THIS
+
+MUTATORS:
+   //Purpose: set class field name with sanitisation 
+   //Date Modified: 28/05/2018
+   SUB MODULE setName
+   IMPORT: inName (String)
+   EXPORT: none
+   ASSERTION: Sets name to inName if inName is a valid input
+   ALGORITHM:
+      IF inName NOT NULL THEN
+         name = SUtil.csvSanitise<--inName
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: set class field minTemp
+   //Date Modified: 20/05/2018
+   SUB MODULE setMinTemp
+   IMPORT: inTemp (real)
+   EXPORT: none
+   ASSERTION: Sets minTemp to inTemp if inTemp is a valid input
+   ALGORITHM:
+      IF MINTEMP < inTemp < MAXTEMP THEN
+         minTemp = inTemp
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: set class field maxTemp
+   //Date Modified: 20/05/2018
+   SUB MODULE setMaxTemp
+   IMPORT: inTemp (real)
+   EXPORT: none
+   ASSERTION: Sets maxTemp to inTemp if inTemp is a valid input
+   ALGORITHM:
+      IF MINTEMP < inTemp < MAXTEMP THEN
+         maxTemp = inTemp
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+DOING METHODS:
+   //Purpose: add a Food Object to storage if there is space
+   //Date Modified: 28/05/2018
+   SUB MODULE addFood
+   IMPORT: inFood (Food)
+   EXPORT: success (boolean)
+   ASSERTION: Checks for space then adds Food to food array
+   ALGORITHM:
+      IF getFreeSpace > 0 THEN
+         food[foodCount] = COPY OF inFood
+         INCREMENT foodCount
+         success = TRUE
+      ELSE
+         success = FALSE
+
+   //Purpose: remove a Food Object from storage and shuffle Food down
+   //Date Modified: 28/05/2018
+   SUB MODULE removeFood
+   IMPORT: inFood (Food)
+   EXPORT: none
+   ASSERTION: remove Food from food array
+   ALGORITHM:
+      //When adding Food a copy is always made, so no duplicates can exist
+      shuffle = FALSE
+      tempFC = foodCount
+      FOR i = 0 TO tempFC CHANGEBY 1 DO
+         IF NOT shuffle AND food[i] == inFood THEN
+            food[i] = NULL
+            shuffle = TRUE
+            DECREMENT foodCount
+         IF shuffle THEN
+            IF (i < foodCount) THEN
+               food[i] = food[i+1]
+               food[i+1] = NULL
+
+   //Purpose: remove a Food Object from storage and shuffle Food down
+   //Date Modified: 20/05/2018
+   SUB MODULE removeFood
+   IMPORT: index (integer)
+   EXPORT: none
+   ASSERTION: remove food at index index from food array
+   ALGORITHM:
+      IF 0 <= index < foodCount THEN
+         removeFood<--food[index]
+      ELSE
+         FAIL WITH IllegalArgumentException
+
+   //Purpose: Return long string of all Food Objects in food array
+   //Date Modified: 20/05/2018
+   SUB MODULE displayFood
+   IMPORT: none
+   EXPORT: string (String)
+   ASSERTION: EXPORTs a string with all food items
+   ALGORITHM:
+      string = ""
+      FOR i = 0 TO foodCount (exclusive) CHANGEBY 1
+         //Output starting from 1 for natural viewing
+         string = string + (i+1) + ": " + food[i].toString<--none + "\n"
+
+   //Purpose: find Expired food and remove them
+   //Date Modified: 28/05/2018
+   SUB MODULE findExpired
+   IMPORT: none
+   EXPORT: count (integer)
+   ASSERTION: remove expired Food from food array
+   ALGORITHM:
+      today = (Calendar of today)
+      i = 0
+      count = 0
+      WHILE i < foodCount DO
+         IF food[i].calcExpiry<--today THEN
+            INCREMENT count
+            OUTPUT "Expired food: " + food[i] + ", removed."
+            removeFood<--i 
+            /* Rewriting the removeFood index method would be more efficient,
+            which is why it's in use here.
+            removeFood shuffles the array down and changes foodCount, so it
+            is not done here */
+         ELSE
+            INCREMENT i
+
+   //Purpose: EXPORT an array of csv strings to store to file
+   //Date Modified: 23/05/2018
+   SUB MODULE getCSVArray
+   IMPORT: none
+   EXPORT: csvs (ARRAY OF String)
+   ASSERTION: csvs will contain ready to store strings of all Foods
+   ALGORITHM:
+      csvs = ARRAY OF String SIZE OF foodCount
+      FOR i = 0 TO foodCount (exclusive) CHANGEBY 1
+         csvs[i] = food[i].getCSV<--none
+
+   //Purpose: Generate a line to write to csv
+   //Date Modified: 23/05/2018
+   SUB MODULE getCSV
+   IMPORT: none
+   EXPORT: csv (String)
+   ASSERTION: EXPORTS "Storagename, capacity"
+   ALGORITHM:
+      csv = name + ", " + getCapacity<--none
+
+PRIVATE METHODS:
+   

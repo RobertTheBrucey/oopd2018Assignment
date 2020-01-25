@@ -1,0 +1,198 @@
+/*****************************************************************************
+* File:      Meat.txt                                                        *
+* Author:    Sean Ashton * Student ID: 14866636                              *
+* Unit:      COMP1001 Object Oriented Program Design                         *
+* Purpose:   Meat object                                                     *
+* Reference: None.                                                           *
+* Comments:  This comment block is the maximum width of 78 characters.       *
+* Requires:  Food, SUtil                                                     *
+* Created:   19/05/2018 * Last Modified: 28/05/2018                          *
+*****************************************************************************/
+CLASS: Meat INHERITS FROM Food
+
+PUBLIC CLASS CONSTANTS:
+   WEIGHTMIN = 0.2
+   WEIGHTMAX = 5.0
+   SPACEMULT = 0.86 //Weight to volume multiplier for IFood implementation
+
+CLASS FIELDS:
+   cut (String)
+   weight (real)
+   useBy (Calendar)
+
+CONSTRUCTORS:
+   DEFAULT: //This should never be called
+   IMPORT: none
+   EXPORT: Object Reference
+   ASSERTION: ... is a valid default state
+   ALGORITHM:
+      super<--none
+      cut = ""
+      weight = 0.2 //Smallest meat cut
+      useBy = Calendar.getInstance<--none //Set expiry to today
+
+   ALTERNATE:
+   IMPORT: inName (String), inTemp (real), inPack (String), inCut (String),
+            inWeight (real), inUseBy (Calendar)
+   EXPORT: Object Reference
+   ASSERTION: Creates object if import are valid, otherwise FAILS
+   ALGORITHM:
+      super<--inName,inTemp,inPack
+      //set methods all copy Objects where appropriate
+      setCut<--inCut
+      setUseBy<--inUseBy
+      setWeight<--inWeight
+
+   CSVSTRING:
+   IMPORT: tokens (ARRAY OF String)
+   EXPORT: Object Reference
+   ASSERTION: Creates object from CSV string
+   ALGORITHM:
+      super<--tokens[1],CONVERT TO real tokens[4],tokens[6]
+      setCut = tokens[2]
+      setWeight = CONVERT TO real tokens[3]
+      setUseBy<--CONVERT TO Calendar tokens[5]
+
+
+   COPY:
+   IMPORT: toCopy (Meat)
+   EXPORT: Object Reference
+   ASSERTION: Constructs an object with identical state to the import
+   ALGORITHM:
+      super<--toCopy
+      //get methods always return copies of Objects
+      cut = toCopy.getCut<--none
+      useBy = toCopy.getUseBy<--none
+      weight = toCopy.getWeight<--none
+
+ACCESSORS:
+   //Purpose: Return copy of cut
+   //Date Modified: 20/05/2018
+   SUB MODULE getCut
+   IMPORT: none
+   EXPORT: COPY OF cut
+
+   //Purpose: Return copy of useBy
+   //Date Modified: 20/05/2018
+   SUB MODULE getUseBy
+   IMPORT: none
+   EXPORT: COPY OF useBy
+
+   //Purpose: Return weight
+   //Date Modified: 20/05/2018
+   SUB MODULE getWeight
+   IMPORT: none
+   EXPORT: weight
+
+   //Purpose: Check equality between Food Objects
+   //Date Modified: 20/05/2018
+   SUB MODULE equals
+   IMPORT: inFood (Food)
+   EXPORT: bool (boolean)
+   ASSERTION: Checks for if inFood has identical state to THIS
+   ALGORITHM:
+      bool = FALSE
+      IF inFood IS A Meat THEN
+         MAKE inFood INTO Meat
+         IF super.equals<--inFood THEN
+            IF cut SAME AS inFood.getCut THEN
+               //Check for real equality with tolerance
+               IF SUtil.realEquals<--weight,inFood.getWeight<--none,0.01 THEN
+                  IF useBy SAME AS inFood.getUseBy<--none THEN
+                     bool = TRUE
+
+   //Purpose: Return a desciptive string of THIS Object's state
+   //Date Modified: 28/05/2018
+   SUB MODULE toString
+   IMPORT: none
+   EXPORT: string (String)
+   ASSERTION: EXPORTs a descriptive String of object state
+   ALGORITHM:
+      string = super.toString<--none + ". Cut: " + cut + ". Weight: " +
+               weight + ". Use By: " + useBy
+
+   //Purpose: Return copy of THIS Meat
+   //Date Modified: 20/05/2018
+   SUB MODULE clone
+   IMPORT: none
+   EXPORT: meat (Meat)
+   ASSERTION: EXPORTs a new Meat object with identical state to THIS
+   ALGORITHM:
+      CONSTRUCT meat USING COPY CONSTRUCTOR WITH THIS
+
+   //Purpose: Generate a string to store 
+   //Date Modified: 28/05/2018
+   SUB MODULE getCSV
+   IMPORT: none
+   EXPORT: csv (String)
+   ASSERTION: EXPORTS a string for storage in a csv file
+   ALGORITHM:
+      csv = "Meat, " + getName<--none + ", " + cut + ", " + weight + ", " +
+            getTemperature<--none + ", " + useBy FORMAT AS dd/mm/yyyy + ", " +
+            getPackaging<--none
+
+   //Interface Methods
+   SUB MODULE calcExpiry
+   IMPORT: today (Calendar)
+   EXPORT: bool (boolean)
+   ASSERTION: bool will be true only if useBy is after today
+   ALGORITHM:
+      //Check if the useBy date is before today
+      IF useBy.before<--today THEN
+         bool = TRUE
+      ELSE
+         bool = FALSE
+
+   SUB MODULE calcSpace
+   IMPORT: food (Food)
+   EXPORT: litres (integer)
+   ASSERTION: litres will be weight * 0.86 rounded up
+   ALGORITHM:
+      litres = CONVERT TO integer (ROUND UP (weight * SPACEMULT))
+
+MUTATORS:
+   //Purpose: set class field cut with sanitation
+   //Date Modified: 20/05/2018
+   SUB MODULE setCut
+   IMPORT: inCut (String)
+   EXPORT: none
+   ASSERTION: Sets cut to inCut if inCut is a valid input
+   ALGORITHM:
+      IF inCut NOT NULL THEN
+         //Remove commas etc from input
+         cut = SUtil.csvSanitise<--inCut
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: set class field weight if in range
+   //Date Modified: 20/05/2018
+   SUB MODULE setWeight
+   IMPORT: inWeight (real)
+   EXPORT: none
+   ASSERTION: Sets weight to inWeight if inWeight is a valid input
+   ALGORITHM:
+      IF WEIGHTMIN <= inWeight <= WEIGHTMAX THEN
+         weight = inWeight
+      ELSE
+         FAIL WITH Illegal Argument Exception
+
+   //Purpose: set class field useBy if now or in the future
+   //Date Modified: 20/05/2018
+   SUB MODULE setUseBy
+   IMPORT: inUseBy (Calendar)
+   EXPORT: none
+   ASSERTION: Sets useBy to inUseBy if inUseBy is a valid input
+   ALGORITHM:
+      today = (Calendar of time now)
+      IF inUseBy NOT NULL THEN
+         IF NOT inUseBy.before<--today THEN
+            useBy = COPY OF inUseBy
+         ELSE
+            FAIL WITH IllegalArgumentException
+      ELSE
+         FAIL WITH NullPointerException
+
+DOING METHODS:
+
+PRIVATE METHODS:
+
